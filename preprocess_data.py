@@ -121,4 +121,11 @@ if __name__ == "__main__":
     test_other_path = os.path.join(current_path, "decode", "test_other")
     hyp_dict = create_hypothesis_dict(test_other_path)
     print(f"Length of dictionary: {len(hyp_dict)}")
+    # Demonstate structure of the dictionary using a given utterance ID from
+    # the test_other dataset
+    hyps_and_scores = hyp_dict["2609-156975-0007"]
+    hyps = hyps_and_scores["hypotheses"]
+    scores = hyps_and_scores["scores"]
+    for hyp,score in zip(hyps,scores):
+        print("hypothesis: " + hyp + "\tscore:" + str(score))
 
