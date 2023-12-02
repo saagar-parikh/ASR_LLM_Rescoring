@@ -4,11 +4,14 @@
 ##              n-best hypotheses and their scores can be directly accessed  ##
 ##              and processed downstream                                     ##
 ## Written by: Justin Dannemiller                                            ##
-## Last Modified: 30 November 2023                                           ##
+## Modified by: Saagar Parikh                                                ##
+## Last Modified: 02 December 2023                                           ##
 ###############################################################################
 
 import os
 import pathlib
+import json
+import argparse
 
 """ 
 brief: Extracts the utterance ID from a line from hypothesis file
@@ -117,15 +120,28 @@ def create_hypothesis_dict(data_path):
     
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--test_set', type=str, default='test_other')
+    args = parser.parse_args()
+
     current_path = os.getcwd()
-    test_other_path = os.path.join(current_path, "decode", "test_other")
-    hyp_dict = create_hypothesis_dict(test_other_path)
+    test_set = args.test_set
+    test_other_path = os.path.join(current_path, "decode", test_set)
+    hyp_dict1 = create_hypothesis_dict(test_other_path)
+
+    with open("hyp_dict_"+test_set+".json", "w") as outfile:
+        json.dump(hyp_dict1, outfile)
+
+    with open("hyp_dict_"+test_set+".json", 'r') as f:
+        hyp_dict = json.load(f)
+
     print(f"Length of dictionary: {len(hyp_dict)}")
+
     # Demonstate structure of the dictionary using a given utterance ID from
     # the test_other dataset
-    hyps_and_scores = hyp_dict["2609-156975-0007"]
-    hyps = hyps_and_scores["hypotheses"]
-    scores = hyps_and_scores["scores"]
-    for hyp,score in zip(hyps,scores):
-        print("hypothesis: " + hyp + "\tscore:" + str(score))
+    # hyps_and_scores = hyp_dict["2609-156975-0007"]
+    # hyps = hyps_and_scores["hypotheses"]
+    # scores = hyps_and_scores["scores"]
+    # for hyp,score in zip(hyps,scores):
+    #     print("hypothesis: " + hyp + "\tscore:" + str(score))
 
