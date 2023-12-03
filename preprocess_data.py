@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
     current_path = os.getcwd()
     test_set = args.test_set
-    test_other_path = os.path.join(current_path, "decode", test_set)
+    test_other_path = os.path.join(current_path, "inference", test_set)
     hyp_dict1 = create_hypothesis_dict(test_other_path)
 
     with open("hyp_dict_"+test_set+".json", "w") as outfile:
