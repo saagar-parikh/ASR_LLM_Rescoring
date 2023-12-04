@@ -130,7 +130,7 @@ if __name__ == "__main__":
     hyp_dict1 = create_hypothesis_dict(test_other_path)
 
     with open("hyp_dict_"+test_set+".json", "w") as outfile:
-        json.dump(hyp_dict1, outfile)
+        json.dump(hyp_dict1, outfile, indent=4)
 
     with open("hyp_dict_"+test_set+".json", 'r') as f:
         hyp_dict = json.load(f)
