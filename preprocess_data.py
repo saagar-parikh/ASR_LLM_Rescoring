@@ -23,16 +23,17 @@ def extract_uttID(line_from_file):
     utt_ID = line_from_file.split(" ")[0]
     return utt_ID
 """ 
-brief: Extracts the hypothesis form a line from hypothesis file
-param[in]: line_from_file - line taking from hypothesis file that contains
-           the utterance ID followed by the corresponding hypothesis
-returns: hypothesis - The extracted hypothesis
+brief: Extracts the sentece form a line from hypothesis or reference file
+param[in]: line_from_file - line taken from  file that contains
+           the utterance ID followed by the corresponding transcribed
+           sentecnce
+returns: sentence - The extracted sentence transcription
 """
-def extract_hypothesis(line_from_file):
-    hyp_as_list = line_from_file.split(" ")[1:]
+def extract_sentence(line_from_file):
+    sent_as_list = line_from_file.split(" ")[1:]
     # Convert from list to str
-    hypothesis = " ".join(hyp_as_list)
-    return hypothesis
+    sentence = " ".join(sent_as_list)
+    return sentence
 """ 
 brief: Extracts the score assigned to a given ASR hypothesis from a line in
        a score file
@@ -67,7 +68,7 @@ def update_hyp_dict(hyp_dict, path_to_ibest):
 
     for hyp_line in hyp_file_lines:
         utt_ID = extract_uttID(hyp_line)
-        hypothesis = extract_hypothesis(hyp_line)
+        hypothesis = extract_sentence(hyp_line)
         if utt_ID not in hyp_dict:
             hyp_dict[utt_ID] = {"hypotheses": [], 
                                 "scores": []}
