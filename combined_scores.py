@@ -50,9 +50,10 @@ def main():
         gpt2_scores = np.asarray(hyp_dict[utt_id]["gpt2_scores"])
         bert_scores = np.asarray(hyp_dict[utt_id]["bert_scores"])
         ## if want to take nbest sorting will be required
-        asr_scores_softmax = F.softmax(
-            torch.abs(torch.tensor(asr_scores)), dim=0
-        ).numpy()
+        # asr_scores_softmax = F.softmax(
+        #     torch.abs(torch.tensor(asr_scores)), dim=0
+        # ).numpy()
+        asr_scores_softmax = F.softmax((torch.tensor(asr_scores)), dim=0).numpy()
         hyp_dict[utt_id]["asr_scores_softmax"] = asr_scores_softmax.tolist()
         hyp_dict[utt_id]["final_score_gpt2"] = list(
             (1 - lambda_param) * asr_scores_softmax + lambda_param * gpt2_scores
