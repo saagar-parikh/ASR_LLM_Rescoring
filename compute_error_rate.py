@@ -28,6 +28,7 @@ return: max_prob_hyp: The most probable hypothesis corresponding to a
                       particular utterance"""
 def extract_max_prob_hyp(rescored_hyp_dict, score_metric):
     # Get the maximum probability hypothesis
+
     LLM_rescored_values = rescored_hyp_dict[score_metric]
     max_prob_idx = np.argmax(LLM_rescored_values)
     max_prob_hyp = rescored_hyp_dict["hypotheses"][max_prob_idx]
@@ -48,7 +49,7 @@ def extract_max_prob_hyp(rescored_hyp_dict, score_metric):
 """
 def get_best_hypotheses(hyp_dict, score_metric):
     # Check that the given LLM model selected is within the permissible options
-    permissible_metrics = ["asr_scores_softmax", "final_score_gpt2", "final_score_bert"]
+    permissible_metrics = ["asr_scores_softmax", "final_score_gpt2", "final_score_bert", "gpt2_scores"]
     if score_metric not in permissible_metrics:
         print(f"Provided LLM model paramater: {score_metric} not in the set of \
                 permitted options.\nPermitted options include gpt2 and bert!")
@@ -60,7 +61,7 @@ def get_best_hypotheses(hyp_dict, score_metric):
             hyps_for_utt_dict = hyp_dict[uttID]
             max_prob_hyp = extract_max_prob_hyp(hyps_for_utt_dict, score_metric)
             best_hypotheses.append(max_prob_hyp)    
-    return best_hypotheses
+        return best_hypotheses
 
 # """
 # @brief: Computes the average word error rate between a given list of hypotheses
@@ -101,13 +102,26 @@ if __name__ == "__main__":
     bert_best_hyps = get_best_hypotheses(rescored_dict, bert_score_metric)
     asr_score_metric = "asr_scores_softmax"
     asr_best_hyps = get_best_hypotheses(rescored_dict, asr_score_metric)
-
+    gpt_only_best_hyps = get_best_hypotheses(rescored_dict, "gpt2_scores")
     ### Compute word error rate
     gpt2_wer= jiwer.wer(ref_sentences, gpt_best_hyps)
     bert_wer = jiwer.wer(ref_sentences, bert_best_hyps)
     asr_wer = jiwer.wer(ref_sentences, asr_best_hyps)
 
+    gpt2_cer= jiwer.cer(ref_sentences, gpt_best_hyps)
+    bert_cer = jiwer.cer(ref_sentences, bert_best_hyps)
+    asr_cer = jiwer.cer(ref_sentences, asr_best_hyps)
+
     score_names = ["gpt2", "bert", "asr"]
     WER_values = [gpt2_wer, bert_wer, asr_wer]
+    CER_values = [gpt2_cer, bert_cer, asr_cer]
     for i in range(len(score_names)):
         print(f"The {score_names[i]} word error rate is: {WER_values[i]}")
+        # print(f"The {score_names[i]} character error rate is: {CER_values[i]}")
+    utt_id = "1688-142285-0005"
+    id = 5
+    print(utt_id)
+    utt1_hyps = rescored_dict[utt_id]["hypotheses"]
+    sent1_WERs = [jiwer.wer(ref_sentences[id], hypi) for hypi in utt1_hyps]
+    print("sentence error rates: ")
+    print(sent1_WERs)
