@@ -26,6 +26,8 @@ import numpy as np
                           "final_score_gpt2", or "final_score_bert"
 return: max_prob_hyp: The most probable hypothesis corresponding to a 
                       particular utterance"""
+
+
 def extract_max_prob_hyp(rescored_hyp_dict, score_metric):
     # Get the maximum probability hypothesis
 
@@ -33,6 +35,7 @@ def extract_max_prob_hyp(rescored_hyp_dict, score_metric):
     max_prob_idx = np.argmax(LLM_rescored_values)
     max_prob_hyp = rescored_hyp_dict["hypotheses"][max_prob_idx]
     return max_prob_hyp
+
 
 """
 @brief: Creates a list of the most probable rescored hypotheses across all 
@@ -47,12 +50,23 @@ def extract_max_prob_hyp(rescored_hyp_dict, score_metric):
 @return best_hypotheses: The list of most probable hypotheses across 
                               all utterances
 """
+
+
 def get_best_hypotheses(hyp_dict, score_metric):
     # Check that the given LLM model selected is within the permissible options
-    permissible_metrics = ["asr_scores_softmax", "final_score_gpt2", "final_score_bert", "gpt2_scores"]
+    permissible_metrics = [
+        "asr_scores_softmax",
+        "final_score_gpt2",
+        "final_score_bert",
+        "final_score_gpt2_mask",
+        "final_score_bert_mask",
+        "gpt2_scores",
+    ]
     if score_metric not in permissible_metrics:
-        print(f"Provided LLM model paramater: {score_metric} not in the set of \
-                permitted options.\nPermitted options include gpt2 and bert!")
+        print(
+            f"Provided LLM model paramater: {score_metric} not in the set of \
+                permitted options.\nPermitted options include gpt2 and bert!"
+        )
     else:
         best_hypotheses = []
         uttIDs = hyp_dict.keys()
@@ -60,8 +74,9 @@ def get_best_hypotheses(hyp_dict, score_metric):
         for uttID in uttIDs:
             hyps_for_utt_dict = hyp_dict[uttID]
             max_prob_hyp = extract_max_prob_hyp(hyps_for_utt_dict, score_metric)
-            best_hypotheses.append(max_prob_hyp)    
+            best_hypotheses.append(max_prob_hyp)
         return best_hypotheses
+
 
 # """
 # @brief: Computes the average word error rate between a given list of hypotheses
@@ -74,29 +89,30 @@ def get_best_hypotheses(hyp_dict, score_metric):
 #     word_err_rates = [jiwer.wer()]
 
 if __name__ == "__main__":
-    parser =argparse.ArgumentParser()
+    parser = argparse.ArgumentParser()
     parser.add_argument("--test_set", type=str, default="test_other")
+    parser.add_argument("--lambda_param", type=float, default=0.98)
     args = parser.parse_args()
     test_set = args.test_set
-
+    lmbda = args.lambda_param
     ### Get the reference transcription sentences
     ref_dict_file_name = "ref_dict_" + test_set + ".json"
-    ref_dict_path = os.path.join(os.getcwd(), ref_dict_file_name) 
-    with open(ref_dict_path, 'r') as ref_dict_file:
+    ref_dict_path = os.path.join(os.getcwd(), ref_dict_file_name)
+    with open(ref_dict_path, "r") as ref_dict_file:
         ref_dict = json.load(ref_dict_file)
     # Sort the dictionary to ensure uniform ordering between reference and hyps
-    ref_dict=dict(sorted(ref_dict.items()))
+    ref_dict = dict(sorted(ref_dict.items()))
     ref_sentences = list(ref_dict.values())
 
     ### Get the best hypotheses
-    rescored_hyp_file_name = "hyp_comb_10_dict_"+ test_set + ".json"
+    rescored_hyp_file_name = "hyp_comb_masks_10_dict_" + test_set + ".json"
     rescored_dict_path = os.path.join(os.getcwd(), rescored_hyp_file_name)
-    with open(rescored_dict_path, 'r') as rescored_dict_file:
+    with open(rescored_dict_path, "r") as rescored_dict_file:
         rescored_dict = json.load(rescored_dict_file)
     # Sort the dictionary to ensure uniform ordering between reference and hyps
     rescored_dict = dict(sorted(rescored_dict.items()))
 
-    gpt_score_metric= "final_score_gpt2"
+    gpt_score_metric = "final_score_gpt2"
     gpt_best_hyps = get_best_hypotheses(rescored_dict, gpt_score_metric)
     bert_score_metric = "final_score_bert"
     bert_best_hyps = get_best_hypotheses(rescored_dict, bert_score_metric)
@@ -104,11 +120,11 @@ if __name__ == "__main__":
     asr_best_hyps = get_best_hypotheses(rescored_dict, asr_score_metric)
     gpt_only_best_hyps = get_best_hypotheses(rescored_dict, "gpt2_scores")
     ### Compute word error rate
-    gpt2_wer= jiwer.wer(ref_sentences, gpt_best_hyps)
+    gpt2_wer = jiwer.wer(ref_sentences, gpt_best_hyps)
     bert_wer = jiwer.wer(ref_sentences, bert_best_hyps)
     asr_wer = jiwer.wer(ref_sentences, asr_best_hyps)
 
-    gpt2_cer= jiwer.cer(ref_sentences, gpt_best_hyps)
+    gpt2_cer = jiwer.cer(ref_sentences, gpt_best_hyps)
     bert_cer = jiwer.cer(ref_sentences, bert_best_hyps)
     asr_cer = jiwer.cer(ref_sentences, asr_best_hyps)
 
@@ -117,7 +133,7 @@ if __name__ == "__main__":
     CER_values = [gpt2_cer, bert_cer, asr_cer]
     for i in range(len(score_names)):
         print(f"The {score_names[i]} word error rate is: {WER_values[i]}")
-        # print(f"The {score_names[i]} character error rate is: {CER_values[i]}")
+        print(f"The {score_names[i]} character error rate is: {CER_values[i]}")
     utt_id = "1688-142285-0005"
     id = 5
     print(utt_id)
@@ -125,3 +141,26 @@ if __name__ == "__main__":
     sent1_WERs = [jiwer.wer(ref_sentences[id], hypi) for hypi in utt1_hyps]
     print("sentence error rates: ")
     print(sent1_WERs)
+
+    try:
+        with open("scores.json", "r") as scores_file:
+            scores = json.load(scores_file)
+    except:
+        scores = {}
+    scores[lmbda] = {}
+    keys = ["gpt2", "bert", "gpt2_masks", "bert_masks", "asr"]
+    score_keys = [
+        "final_score_gpt2",
+        "final_score_bert",
+        "final_score_gpt2_mask",
+        "final_score_bert_mask",
+        "asr_scores_softmax",
+    ]
+    for i in range(len(keys)):
+        best_hyps = get_best_hypotheses(rescored_dict, score_keys[i])
+        scores[lmbda][keys[i]] = {}
+        scores[lmbda][keys[i]]["WER"] = jiwer.wer(ref_sentences, best_hyps)
+        scores[lmbda][keys[i]]["CER"] = jiwer.cer(ref_sentences, best_hyps)
+
+    with open("scores.json", "w") as outfile:
+        json.dump(scores, outfile, indent=2)

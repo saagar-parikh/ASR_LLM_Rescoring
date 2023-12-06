@@ -18,6 +18,8 @@ from preprocess_data import extract_sentence, extract_uttID
 @return ref_dict: Dictionary mapping utterance ID to the corrresponding
                   transcribed sentence
 """
+
+
 def create_reference_dict(path_to_refs):
     ## Read all lines in the reference file
     with open(path_to_refs, "r") as ref_file:
@@ -29,10 +31,11 @@ def create_reference_dict(path_to_refs):
         reference = extract_sentence(ref_line)
         ref_dict[uttID] = reference
     return ref_dict
-    
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('--test_set', type=str, default='test_other')
+    parser.add_argument("--test_set", type=str, default="test_other")
     args = parser.parse_args()
 
     current_path = os.getcwd()
@@ -40,6 +43,6 @@ if __name__ == "__main__":
     reference_path = os.path.join(current_path, "ground_truth", test_set, "text")
 
     ref_dict = create_reference_dict(reference_path)
-    ref_dict_file_name = "ref_dict_test_other.json"
+    ref_dict_file_name = "ref_dict_" + test_set + ".json"
     with open(ref_dict_file_name, "w") as ref_json_file:
         json.dump(ref_dict, ref_json_file, indent=4)
